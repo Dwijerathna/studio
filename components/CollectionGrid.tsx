@@ -1,85 +1,105 @@
-type CollectionItem = {
-  id: string;
-  title: string;
-  version: string;
-  category: string;
-};
+"use client";
 
-const collectionItems: CollectionItem[] = [
-  {
-    id: "seo-janitor",
-    title: "SEO Janitor Automation",
-    version: "v1.0.4",
-    category: "Automation",
-  },
-  {
-    id: "safeguard",
-    title: "Safeguard Architecture",
-    version: "v2.1.0",
-    category: "Infrastructure",
-  },
-  {
-    id: "signal-engine",
-    title: "Signal Engine Platform",
-    version: "v0.9.2",
-    category: "Ecosystem",
-  },
-  {
-    id: "nocturne-lens",
-    title: "Nocturne Lens Suite",
-    version: "v1.3.1",
-    category: "Visual Media",
-  },
-];
+import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
+import { projects } from "@/data/projects";
+import TechBadges from "@/components/TechBadges";
+import {
+  fadeTransition,
+  hoverFocusTransition,
+  slateAccent,
+  staggerDelay,
+} from "@/lib/motion";
+
+const sortedProjects = [...projects].sort((a, b) => {
+  if (a.status === b.status) return 0;
+  return a.status === "archived" ? 1 : -1;
+});
 
 export default function CollectionGrid() {
+  const reducedMotion = useReducedMotion();
+
   return (
     <section
-      id="ecosystems"
-      className="border-t border-neutral-900 px-6 py-24 md:px-12 md:py-32 lg:px-16"
+      id="projects"
+      className="scroll-mt-16 border-t border-slate/20 px-6 py-24 md:px-12 md:py-32 lg:px-16"
     >
       <div className="mx-auto max-w-7xl">
-        <div className="mb-16 flex flex-col gap-4 md:mb-24 md:flex-row md:items-end md:justify-between">
+        <div className="mb-16 flex flex-col gap-6 md:mb-24 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.4em] text-neutral-500">
-              Current Season
+            <p className="mb-4 font-mono text-xs uppercase tracking-widest text-foreground/50">
+              Projects
             </p>
-            <h2 className="text-3xl font-light tracking-tight text-white md:text-4xl">
-              The Collection
+            <h2 className="text-3xl font-light tracking-tight text-foreground md:text-4xl">
+              Selected work
             </h2>
           </div>
-          <p className="max-w-xs text-xs leading-relaxed tracking-wide text-neutral-500">
-            Engineered systems and visual artifacts, presented with the
-            precision of a luxury catalog.
+          <p className="max-w-xs text-base leading-relaxed text-foreground/70">
+            Web apps, automation tools, and backend systems I&apos;ve designed
+            and built.
           </p>
         </div>
 
-        <ul className="grid grid-cols-1 gap-px bg-neutral-900 sm:grid-cols-2 lg:grid-cols-4">
-          {collectionItems.map((item) => (
-            <li key={item.id}>
-              <article className="group flex h-full min-h-[320px] flex-col justify-between bg-black p-8 transition-colors hover:bg-neutral-950">
-                <div>
-                  <p className="text-[10px] font-medium uppercase tracking-[0.35em] text-neutral-600">
-                    {item.category}
-                  </p>
-                  <h3 className="mt-6 text-lg font-light leading-snug tracking-tight text-white transition-colors group-hover:text-neutral-200">
-                    {item.title}
-                  </h3>
-                </div>
+        <ul className="grid grid-cols-1 gap-px bg-slate/20 sm:grid-cols-2 lg:grid-cols-3">
+          {sortedProjects.map((project, index) => (
+            <motion.li
+              key={project.id}
+              className="h-full"
+              initial={{ opacity: 0, y: reducedMotion ? 0 : 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.25 }}
+              transition={{
+                ...fadeTransition,
+                duration: 1,
+                delay: Math.min(index, 3) * staggerDelay,
+                ease: "easeInOut",
+              }}
+            >
+              <Link
+                href={`/projects/${project.slug}`}
+                className="flex h-full flex-col"
+              >
+                <motion.article
+                  className="group flex h-full flex-col border border-transparent bg-surface p-8"
+                  whileHover={
+                    reducedMotion
+                      ? undefined
+                      : { scale: 1.02, borderColor: slateAccent }
+                  }
+                  transition={hoverFocusTransition}
+                >
+                  <div className="flex flex-grow flex-col">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="font-mono text-xs uppercase tracking-widest text-foreground/50">
+                        {project.category}
+                      </p>
+                      {project.status === "archived" ? (
+                        <span className="font-mono text-[10px] uppercase tracking-widest text-foreground/40">
+                          Archived
+                        </span>
+                      ) : null}
+                    </div>
+                    <h3 className="mt-6 text-lg font-light leading-snug tracking-tight text-foreground transition-colors duration-500 ease-in-out group-hover:text-foreground/90">
+                      {project.title}
+                    </h3>
 
-                <div className="mt-12 flex items-end justify-between border-t border-neutral-900 pt-6">
-                  <span className="text-[10px] font-medium uppercase tracking-[0.3em] text-neutral-500">
-                    {item.version}
-                  </span>
-                  <span
-                    aria-hidden
-                    className="text-neutral-700 transition-colors group-hover:text-neutral-400"
-                  >
-                    →
-                  </span>
-                </div>
-              </article>
-            </li>
+                    <p className="mt-6 flex-grow text-sm leading-relaxed text-foreground/70">
+                      {project.summary}
+                    </p>
+                  </div>
+
+                  <div className="mt-auto flex w-full flex-wrap items-center gap-2 border-t border-slate/20 pt-6 transition-colors duration-500 ease-in-out group-hover:border-slate/40">
+                    <TechBadges items={project.techStack} />
+                    <span
+                      aria-hidden
+                      className="ml-auto text-slate/40 transition-colors duration-500 ease-in-out group-hover:text-slate"
+                    >
+                      →
+                    </span>
+                  </div>
+                </motion.article>
+              </Link>
+            </motion.li>
           ))}
         </ul>
       </div>
